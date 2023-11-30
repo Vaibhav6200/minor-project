@@ -6,15 +6,15 @@ import json
 class Blockchain:
     def __init__(self):
         self.chain = []
-        self.createBlock(proof=1, previous_hash='0', ipfs_hash={})      # creating genesis block
+        self.createBlock(proof=1, previous_hash='0', ipfs_hash_data={})      # creating genesis block
 
-    def createBlock(self, proof, previous_hash, ipfs_hash):
+    def createBlock(self, proof, previous_hash, ipfs_hash_data):
         block = {
             'index': str(len(self.chain) + 1),
             'timestamp': str(datetime.datetime.now()),
             'proof': proof,
             'previous_hash': previous_hash,
-            'ipfs_hash': ipfs_hash
+            'ipfs_hashes': ipfs_hash_data
         }
         self.chain.append(block)
         return block
@@ -37,10 +37,9 @@ class Blockchain:
         encoded_block = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(encoded_block).hexdigest()
 
-# 2 things we have to check:
-# (i) current_block[prev_hash] === previous_block_hash
-# (ii) proof of work is valid for each block
-
+    # Two things we have to check:
+    # (i) current_block[prev_hash] === previous_block_hash
+    # (ii) proof of work is valid for each block
     def isChainValid(self, chain):
         prev_block = chain[0]
         block_index = 1
