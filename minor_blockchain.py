@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template, session
 from blockchain import Blockchain
 from helper import *
-import requests
+from urllib.parse import urlparse
 
 
 uploaded_files = {}
@@ -13,7 +13,6 @@ app = Flask(__name__, template_folder='C:\\Users\\Vaibhav\\Desktop\\minor\\templ
 app.config['SECRET_KEY'] = 'vaibhav_paliwal_secret_key'
 
 
-
 def mineBlock():
     if session['ipfs_hash']:
         previous_block = blockchain.getPrevBlock()
@@ -23,9 +22,6 @@ def mineBlock():
 
         ipfs_hashes = session['ipfs_hash']
         block = blockchain.createBlock(proof=new_mined_proof, previous_hash=prev_hash, ipfs_hash_data=ipfs_hashes)
-        print()
-        print(blockchain.chain)
-        print()
         response = {
             "message": "Congratulations! You just mined a block",
             'index': block['index'],
@@ -36,14 +32,9 @@ def mineBlock():
             'ipfs_hashes': ipfs_hashes,
         }
         session.pop('ipfs_hash')
-        print()
-        print(blockchain.chain)
-        print()
         return jsonify(response), 200       # json response and status code
     else:
-        print()
         print("ERROR: NO Hashes Available to put into Block !!!")
-        print()
 
 
 @app.route('/get_chain', methods=['GET'])
@@ -77,8 +68,11 @@ def convert_and_mine():
 
         if request.form.get("convert_and_mine_btn")=="submit":
             for key, value in uploaded_files.items():
-                result_url = IPFS(key, str(value))
-                session['ipfs_hash'][key] = result_url[0]['path']
+                result = IPFS(key, str(value))
+                result_url = result[0]['path']
+                file_hash = urlparse(result_url).path.split('/')[2]
+                session['ipfs_hash'][key] = file_hash
+
             uploaded_files.clear()
 
             mineBlock()
